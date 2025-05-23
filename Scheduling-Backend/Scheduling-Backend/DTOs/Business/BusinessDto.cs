@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Scheduling_Backend.DTOs.Appointment;
 using Scheduling_Backend.Models;
-using AppointmentModel = Scheduling_Backend.Models.Appointment;
 
 namespace Scheduling_Backend.DTOs.Business
 {
@@ -15,6 +15,6 @@ namespace Scheduling_Backend.DTOs.Business
         public string Phone { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public List<AppointmentModel> Appointments { get; set; } = new List<AppointmentModel>();
+        public List<AppointmentDto> Appointments { get; set; } = new List<AppointmentDto>();
     }
 }

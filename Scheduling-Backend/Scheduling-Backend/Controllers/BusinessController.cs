@@ -23,7 +23,7 @@ namespace Scheduling_Backend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetBusinesses()
         {
-            var businesses = await _context.Businesses.Select(b => b.ToBusinessDto()).ToListAsync();
+            var businesses = await _context.Businesses.Include(c => c.Appointments).Select(b => b.ToBusinessDto()).ToListAsync();
 
             if (businesses == null || !businesses.Any())
             {
@@ -35,7 +35,7 @@ namespace Scheduling_Backend.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetBusinessById([FromRoute] int id)
         {
-            var business = await _context.Businesses.FindAsync(id);
+            var business = await _context.Businesses.Include(c => c.Appointments).FirstOrDefaultAsync(b => b.Id == id);
 
             if (business == null)
             {

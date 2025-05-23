@@ -19,7 +19,7 @@ namespace Scheduling_Backend.Mappers
                 Phone = businessModel.Phone,
                 Address = businessModel.Address,
                 Description = businessModel.Description,
-                Appointments = businessModel.Appointments
+                Appointments = businessModel.Appointments.Select(a => a.ToAppointmentDto()).ToList()
             };
         }
 
