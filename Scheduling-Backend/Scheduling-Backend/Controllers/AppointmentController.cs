@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Scheduling_Backend.Data;
 using Scheduling_Backend.DTOs.Appointment;
 using Scheduling_Backend.Mappers;
@@ -20,9 +21,9 @@ namespace Scheduling_Backend.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAppointments()
+        public async Task<IActionResult> GetAppointments()
         {
-            var appointments = _context.Appointments.Select(a => a.ToAppointmentDto()).ToList();
+            var appointments = await _context.Appointments.Select(a => a.ToAppointmentDto()).ToListAsync();
 
             if (appointments == null || !appointments.Any())
             {
@@ -32,9 +33,9 @@ namespace Scheduling_Backend.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetAppointmentById([FromRoute] int id)
+        public async Task<IActionResult> GetAppointmentById([FromRoute] int id)
         {
-            var appointment = _context.Appointments.Find(id);
+            var appointment = await _context.Appointments.FindAsync(id);
 
             if (appointment == null)
             {
@@ -44,7 +45,7 @@ namespace Scheduling_Backend.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateAppointment([FromBody] CreateAppointmentDto createAppointmentDto)
+        public async Task<IActionResult> CreateAppointment([FromBody] CreateAppointmentDto createAppointmentDto)
         {
             if (createAppointmentDto == null)
             {
@@ -52,17 +53,17 @@ namespace Scheduling_Backend.Controllers
             }
 
             var appointment = createAppointmentDto.ToAppointmentFromCreateDto();
-            _context.Appointments.Add(appointment);
-            _context.SaveChanges();
+            await _context.Appointments.AddAsync(appointment);
+            await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetAppointmentById), new { id = appointment.Id }, appointment.ToAppointmentDto());
         }
 
         [HttpPut]
         [Route("{id}")]
-        public IActionResult UpdateAppointment([FromRoute] int id, [FromBody] UpdateAppointmentDto updateAppointmentDto)
+        public async Task<IActionResult> UpdateAppointment([FromRoute] int id, [FromBody] UpdateAppointmentDto updateAppointmentDto)
         {
-            var appointment = _context.Appointments.FirstOrDefault(a => a.Id == id);
+            var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id);
             if (appointment == null)
             {
                 return NotFound($"Appointment with ID: {id} not found!");
@@ -92,22 +93,22 @@ namespace Scheduling_Backend.Controllers
                 appointment.EndTime = updateAppointmentDto.EndTime.Value;
             }
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return Ok(appointment.ToAppointmentDto());
         }
 
         [HttpDelete]
         [Route("{id}")]
-        public IActionResult DeleteAppointment([FromRoute] int id)
+        public async Task<IActionResult> DeleteAppointment([FromRoute] int id)
         {
-            var appointment = _context.Appointments.FirstOrDefault(a => a.Id == id);
+            var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id);
             if (appointment == null)
             {
                 return NotFound($"Appointment with ID: {id} not found!");
             }
 
             _context.Appointments.Remove(appointment);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }

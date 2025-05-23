@@ -22,5 +22,17 @@ namespace Scheduling_Backend.Mappers
                 Appointments = businessModel.Appointments
             };
         }
+
+        public static Business ToBusinessFromCreateDto(this CreateBusinessDto createBusinessDto)
+        {
+            return new Business
+            {
+                Name = createBusinessDto.Name,
+                Email = createBusinessDto.Email,
+                Phone = createBusinessDto.Phone,
+                Address = createBusinessDto.Address,
+                Description = createBusinessDto.Description
+            };
+        }
     }
 }

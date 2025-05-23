@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Scheduling_Backend.Data;
+using Scheduling_Backend.DTOs.Business;
 using Scheduling_Backend.Mappers;
 
 namespace Scheduling_Backend.Controllers
@@ -19,9 +21,9 @@ namespace Scheduling_Backend.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetBusinesses()
+        public async Task<IActionResult> GetBusinesses()
         {
-            var businesses = _context.Businesses.Select(b => b.ToBusinessDto()).ToList();
+            var businesses = await _context.Businesses.Select(b => b.ToBusinessDto()).ToListAsync();
 
             if (businesses == null || !businesses.Any())
             {
@@ -31,15 +33,80 @@ namespace Scheduling_Backend.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetBusinessById([FromRoute] int id)
+        public async Task<IActionResult> GetBusinessById([FromRoute] int id)
         {
-            var business = _context.Businesses.Find(id);
+            var business = await _context.Businesses.FindAsync(id);
 
             if (business == null)
             {
                 return NotFound($"Business with ID: {id} not found!");
             }
             return Ok(business.ToBusinessDto());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateBusiness([FromBody] CreateBusinessDto createBusinessDto)
+        {
+            if (createBusinessDto == null)
+            {
+                return BadRequest("Invalid business data!");
+            }
+
+            var business = createBusinessDto.ToBusinessFromCreateDto();
+            await _context.Businesses.AddAsync(business);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetBusinessById), new { id = business.Id }, business.ToBusinessDto());
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        public async Task<IActionResult> UpdateBusiness([FromRoute] int id, [FromBody] UpdateBusinessDto updateBusinessDto)
+        {
+            var business = await _context.Businesses.FirstOrDefaultAsync(b => b.Id == id);
+            if (business == null)
+            {
+                return NotFound($"Business with ID: {id} not found!");
+            }
+            if (updateBusinessDto.Name != null)
+            {
+                business.Name = updateBusinessDto.Name;
+            }
+            if (updateBusinessDto.Email != null)
+            {
+                business.Email = updateBusinessDto.Email;
+            }
+            if (updateBusinessDto.Phone != null)
+            {
+                business.Phone = updateBusinessDto.Phone;
+            }
+            if (updateBusinessDto.Address != null)
+            {
+                business.Address = updateBusinessDto.Address;
+            }
+            if (updateBusinessDto.Description != null)
+            {
+                business.Description = updateBusinessDto.Description;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(business.ToBusinessDto());
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public async Task<IActionResult> DeleteBusiness([FromRoute] int id)
+        {
+            var business = await _context.Businesses.FindAsync(id);
+            if (business == null)
+            {
+                return NotFound($"Business with ID: {id} not found!");
+            }
+
+            _context.Businesses.Remove(business);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }
