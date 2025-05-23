@@ -29,7 +29,6 @@ namespace Scheduling_Backend.Mappers
         {
             return new Appointment
             {
-                BusinessId = createAppointmentDto.BusinessId,
                 ClientName = createAppointmentDto.ClientName,
                 ClientEmail = createAppointmentDto.ClientEmail,
                 ClientPhone = createAppointmentDto.ClientPhone,
