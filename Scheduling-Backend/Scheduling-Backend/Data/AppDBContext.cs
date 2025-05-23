@@ -15,5 +15,6 @@ namespace Scheduling_Backend.Data
         }
 
         public DbSet<Appointment> Appointments { get; set; }
+        public DbSet<Business> Businesses { get; set; }
     }
 }
