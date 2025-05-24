@@ -23,6 +23,10 @@ namespace Scheduling_Backend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAppointments()
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var appointments = await _context.Appointments.Select(a => a.ToAppointmentDto()).ToListAsync();
 
             if (appointments == null || !appointments.Any())
@@ -32,9 +36,13 @@ namespace Scheduling_Backend.Controllers
             return Ok(appointments);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetAppointmentById([FromRoute] int id)
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var appointment = await _context.Appointments.FindAsync(id);
 
             if (appointment == null)
@@ -44,15 +52,24 @@ namespace Scheduling_Backend.Controllers
             return Ok(appointment.ToAppointmentDto());
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateAppointment([FromBody] CreateAppointmentDto createAppointmentDto)
+        [HttpPost("{businessId:int}")]
+        public async Task<IActionResult> CreateAppointment([FromRoute] int businessId, [FromBody] CreateAppointmentDto createAppointmentDto)
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var business = await _context.Businesses.AnyAsync(b => b.Id == businessId);
+            if (!business)
+            {
+                return NotFound($"Business with ID: {businessId} not found!");
+            }
             if (createAppointmentDto == null)
             {
                 return BadRequest("Invalid appointment data!");
             }
 
-            var appointment = createAppointmentDto.ToAppointmentFromCreateDto();
+            var appointment = createAppointmentDto.ToAppointmentFromCreateDto(businessId);
             await _context.Appointments.AddAsync(appointment);
             await _context.SaveChangesAsync();
 
@@ -60,10 +77,14 @@ namespace Scheduling_Backend.Controllers
         }
 
         [HttpPut]
-        [Route("{id}")]
+        [Route("{id:int}")]
         public async Task<IActionResult> UpdateAppointment([FromRoute] int id, [FromBody] UpdateAppointmentDto updateAppointmentDto)
         {
-            var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id);
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var appointment = await _context.Appointments.FindAsync(id);
             if (appointment == null)
             {
                 return NotFound($"Appointment with ID: {id} not found!");
@@ -98,7 +119,7 @@ namespace Scheduling_Backend.Controllers
         }
 
         [HttpDelete]
-        [Route("{id}")]
+        [Route("{id:int}")]
         public async Task<IActionResult> DeleteAppointment([FromRoute] int id)
         {
             var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id);

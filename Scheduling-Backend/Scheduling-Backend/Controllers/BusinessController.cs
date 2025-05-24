@@ -23,6 +23,11 @@ namespace Scheduling_Backend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetBusinesses()
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var businesses = await _context.Businesses.Include(c => c.Appointments).Select(b => b.ToBusinessDto()).ToListAsync();
 
             if (businesses == null || !businesses.Any())
@@ -32,9 +37,14 @@ namespace Scheduling_Backend.Controllers
             return Ok(businesses);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetBusinessById([FromRoute] int id)
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var business = await _context.Businesses.Include(c => c.Appointments).FirstOrDefaultAsync(b => b.Id == id);
 
             if (business == null)
@@ -47,6 +57,10 @@ namespace Scheduling_Backend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateBusiness([FromBody] CreateBusinessDto createBusinessDto)
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             if (createBusinessDto == null)
             {
                 return BadRequest("Invalid business data!");
@@ -60,9 +74,13 @@ namespace Scheduling_Backend.Controllers
         }
 
         [HttpPut]
-        [Route("{id}")]
+        [Route("{id:int}")]
         public async Task<IActionResult> UpdateBusiness([FromRoute] int id, [FromBody] UpdateBusinessDto updateBusinessDto)
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var business = await _context.Businesses.FirstOrDefaultAsync(b => b.Id == id);
             if (business == null)
             {
@@ -94,7 +112,7 @@ namespace Scheduling_Backend.Controllers
         }
 
         [HttpDelete]
-        [Route("{id}")]
+        [Route("{id:int}")]
         public async Task<IActionResult> DeleteBusiness([FromRoute] int id)
         {
             var business = await _context.Businesses.FindAsync(id);

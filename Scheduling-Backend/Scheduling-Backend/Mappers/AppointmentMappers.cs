@@ -15,6 +15,7 @@ namespace Scheduling_Backend.Mappers
             return new AppointmentDto
             {
                 Id = appointmentModel.Id,
+                BusinessId = appointmentModel.BusinessId,
                 ClientName = appointmentModel.ClientName,
                 ClientEmail = appointmentModel.ClientEmail,
                 ClientPhone = appointmentModel.ClientPhone,
@@ -25,7 +26,7 @@ namespace Scheduling_Backend.Mappers
             };
         }
 
-        public static Appointment ToAppointmentFromCreateDto(this CreateAppointmentDto createAppointmentDto)
+        public static Appointment ToAppointmentFromCreateDto(this CreateAppointmentDto createAppointmentDto, int businessId)
         {
             return new Appointment
             {
@@ -35,6 +36,21 @@ namespace Scheduling_Backend.Mappers
                 Description = createAppointmentDto.Description,
                 StartTime = createAppointmentDto.StartTime,
                 EndTime = createAppointmentDto.EndTime,
+                Status = Enums.AppointmentStatus.Pending,
+                BusinessId = businessId
+            };
+        }
+
+        public static Appointment ToAppointmentFromUpdateDto(this UpdateAppointmentDto updateAppointmentDto)
+        {
+            return new Appointment
+            {
+                ClientName = updateAppointmentDto.ClientName ?? string.Empty,
+                ClientEmail = updateAppointmentDto.ClientEmail ?? string.Empty,
+                ClientPhone = updateAppointmentDto.ClientPhone ?? string.Empty,
+                Description = updateAppointmentDto.Description ?? string.Empty,
+                StartTime = updateAppointmentDto.StartTime ?? DateTime.Now,
+                EndTime = updateAppointmentDto.EndTime ?? DateTime.Now.AddHours(1),
                 Status = Enums.AppointmentStatus.Pending
             };
         }
