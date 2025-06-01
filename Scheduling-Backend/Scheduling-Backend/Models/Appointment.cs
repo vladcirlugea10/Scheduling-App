@@ -9,8 +9,8 @@ namespace Scheduling_Backend.Models
     public class Appointment
     {
         public int Id { get; set; }
-        public int BusinessId { get; set; }
-        public Business? Business { get; set; }
+        public string BusinessId { get; set; } = string.Empty;
+        public User? BusinessUser { get; set; }
         public string ClientName { get; set; } = string.Empty;
         public string ClientEmail { get; set; } = string.Empty;
         public string ClientPhone { get; set; } = string.Empty;

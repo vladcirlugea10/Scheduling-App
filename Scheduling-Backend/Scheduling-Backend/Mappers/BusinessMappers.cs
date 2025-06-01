@@ -9,29 +9,17 @@ namespace Scheduling_Backend.Mappers
 {
     public static class BusinessMappers
     {
-        public static BusinessDto ToBusinessDto(this Business businessModel)
+        public static BusinessDto ToBusinessDto(this BusinessProfile businessModel)
         {
             return new BusinessDto
             {
-                Id = businessModel.Id,
-                Name = businessModel.Name,
-                Email = businessModel.Email,
-                Phone = businessModel.Phone,
-                Address = businessModel.Address,
-                Description = businessModel.Description,
+                Id = businessModel.UserId,
+                Name = businessModel.BusinessName,
+                Email = businessModel.User.Email,
+                Phone = businessModel.User.PhoneNumber,
+                Address = businessModel.BusinessAddress,
+                Description = businessModel.BusinessDescription,
                 Appointments = businessModel.Appointments.Select(a => a.ToAppointmentDto()).ToList()
-            };
-        }
-
-        public static Business ToBusinessFromCreateDto(this CreateBusinessDto createBusinessDto)
-        {
-            return new Business
-            {
-                Name = createBusinessDto.Name,
-                Email = createBusinessDto.Email,
-                Phone = createBusinessDto.Phone,
-                Address = createBusinessDto.Address,
-                Description = createBusinessDto.Description
             };
         }
     }

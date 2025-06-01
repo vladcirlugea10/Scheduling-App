@@ -9,7 +9,7 @@ namespace Scheduling_Backend.DTOs.Appointment
     public class AppointmentDto
     {
         public int Id { get; set; }
-        public int BusinessId { get; set; }
+        public string BusinessId { get; set; } = string.Empty;
         public string ClientName { get; set; } = string.Empty;
         public string ClientEmail { get; set; } = string.Empty;
         public string ClientPhone { get; set; } = string.Empty;

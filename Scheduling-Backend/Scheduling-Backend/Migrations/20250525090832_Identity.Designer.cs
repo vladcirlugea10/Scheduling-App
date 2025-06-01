@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Scheduling_Backend.Data;
@@ -11,9 +12,11 @@ using Scheduling_Backend.Data;
 namespace Scheduling_Backend.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250525090832_Identity")]
+    partial class Identity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,26 +49,6 @@ namespace Scheduling_Backend.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "1",
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = "2",
-                            Name = "User",
-                            NormalizedName = "USER"
-                        },
-                        new
-                        {
-                            Id = "3",
-                            Name = "Business",
-                            NormalizedName = "BUSINESS"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -182,15 +165,8 @@ namespace Scheduling_Backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("BusinessId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BusinessProfileUserId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("BusinessUserId")
-                        .HasColumnType("text");
+                    b.Property<int>("BusinessId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("ClientEmail")
                         .IsRequired()
@@ -222,33 +198,45 @@ namespace Scheduling_Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BusinessProfileUserId");
-
-                    b.HasIndex("BusinessUserId");
+                    b.HasIndex("BusinessId");
 
                     b.ToTable("Appointments");
                 });
 
-            modelBuilder.Entity("Scheduling_Backend.Models.BusinessProfile", b =>
+            modelBuilder.Entity("Scheduling_Backend.Models.Business", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
 
-                    b.Property<string>("BusinessAddress")
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("BusinessDescription")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("BusinessName")
+                    b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("UserId");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.ToTable("BusinessProfiles");
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Businesses");
                 });
 
             modelBuilder.Entity("Scheduling_Backend.Models.User", b =>
@@ -262,9 +250,6 @@ namespace Scheduling_Backend.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -316,24 +301,6 @@ namespace Scheduling_Backend.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("Scheduling_Backend.Models.UserProfile", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("UserId");
-
-                    b.ToTable("UserProfiles");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -389,49 +356,18 @@ namespace Scheduling_Backend.Migrations
 
             modelBuilder.Entity("Scheduling_Backend.Models.Appointment", b =>
                 {
-                    b.HasOne("Scheduling_Backend.Models.BusinessProfile", null)
+                    b.HasOne("Scheduling_Backend.Models.Business", "Business")
                         .WithMany("Appointments")
-                        .HasForeignKey("BusinessProfileUserId");
-
-                    b.HasOne("Scheduling_Backend.Models.User", "BusinessUser")
-                        .WithMany()
-                        .HasForeignKey("BusinessUserId");
-
-                    b.Navigation("BusinessUser");
-                });
-
-            modelBuilder.Entity("Scheduling_Backend.Models.BusinessProfile", b =>
-                {
-                    b.HasOne("Scheduling_Backend.Models.User", "User")
-                        .WithOne("BusinessProfile")
-                        .HasForeignKey("Scheduling_Backend.Models.BusinessProfile", "UserId")
+                        .HasForeignKey("BusinessId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Business");
                 });
 
-            modelBuilder.Entity("Scheduling_Backend.Models.UserProfile", b =>
-                {
-                    b.HasOne("Scheduling_Backend.Models.User", "User")
-                        .WithOne("UserProfile")
-                        .HasForeignKey("Scheduling_Backend.Models.UserProfile", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Scheduling_Backend.Models.BusinessProfile", b =>
+            modelBuilder.Entity("Scheduling_Backend.Models.Business", b =>
                 {
                     b.Navigation("Appointments");
-                });
-
-            modelBuilder.Entity("Scheduling_Backend.Models.User", b =>
-                {
-                    b.Navigation("BusinessProfile");
-
-                    b.Navigation("UserProfile");
                 });
 #pragma warning restore 612, 618
         }

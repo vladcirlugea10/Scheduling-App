@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scheduling_Backend.Data;
@@ -23,105 +24,100 @@ namespace Scheduling_Backend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetBusinesses()
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var businesses = await _context.Businesses.Include(c => c.Appointments).Select(b => b.ToBusinessDto()).ToListAsync();
+            var businesses = await _context.Users
+                .Include(u => u.BusinessProfile)
+                    .ThenInclude(bp => bp!.Appointments)
+                .Include(u => u.BusinessProfile)
+                    .ThenInclude(bp => bp!.User)
+                .Where(u => u.BusinessProfile != null)
+                .Select(u => u.BusinessProfile!.ToBusinessDto())
+                .ToListAsync();
 
-            if (businesses == null || !businesses.Any())
+            if (businesses == null || businesses.Count == 0)
             {
                 return NotFound("No businesses found!");
             }
             return Ok(businesses);
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetBusinessById([FromRoute] int id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetBusinessById([FromRoute] string id)
         {
             if(!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var business = await _context.Businesses.Include(c => c.Appointments).FirstOrDefaultAsync(b => b.Id == id);
+            var business = await _context.Users
+                .Include(u => u.BusinessProfile)
+                .Include(u => u.BusinessProfile.Appointments)
+                .FirstOrDefaultAsync(u => u.Id == id && u.BusinessProfile != null);
 
             if (business == null)
             {
                 return NotFound($"Business with ID: {id} not found!");
             }
-            return Ok(business.ToBusinessDto());
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateBusiness([FromBody] CreateBusinessDto createBusinessDto)
-        {
-            if(!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            if (createBusinessDto == null)
-            {
-                return BadRequest("Invalid business data!");
-            }
-
-            var business = createBusinessDto.ToBusinessFromCreateDto();
-            await _context.Businesses.AddAsync(business);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetBusinessById), new { id = business.Id }, business.ToBusinessDto());
+            return Ok(business.BusinessProfile!.ToBusinessDto());
         }
 
         [HttpPut]
-        [Route("{id:int}")]
-        public async Task<IActionResult> UpdateBusiness([FromRoute] int id, [FromBody] UpdateBusinessDto updateBusinessDto)
+        [Route("{id}")]
+        public async Task<IActionResult> UpdateBusiness([FromRoute] string id, [FromBody] UpdateBusinessDto updateBusinessDto)
         {
             if(!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var business = await _context.Businesses.FirstOrDefaultAsync(b => b.Id == id);
+            var business = await _context.Users
+                .Include(u => u.BusinessProfile)
+                .FirstOrDefaultAsync(u => u.Id == id && u.BusinessProfile != null);
             if (business == null)
             {
                 return NotFound($"Business with ID: {id} not found!");
             }
-            if (updateBusinessDto.Name != null)
+            if (updateBusinessDto.BusinessName != null)
             {
-                business.Name = updateBusinessDto.Name;
+                business.BusinessProfile!.BusinessName = updateBusinessDto.BusinessName;
             }
-            if (updateBusinessDto.Email != null)
+            if (updateBusinessDto.BusinessEmail != null)
             {
-                business.Email = updateBusinessDto.Email;
+                business.Email = updateBusinessDto.BusinessEmail;
             }
-            if (updateBusinessDto.Phone != null)
+            if (updateBusinessDto.BusinessPhone != null)
             {
-                business.Phone = updateBusinessDto.Phone;
+                business.PhoneNumber = updateBusinessDto.BusinessPhone;
             }
-            if (updateBusinessDto.Address != null)
+            if (updateBusinessDto.BusinessAddress != null)
             {
-                business.Address = updateBusinessDto.Address;
+                business.BusinessProfile!.BusinessAddress = updateBusinessDto.BusinessAddress;
             }
-            if (updateBusinessDto.Description != null)
+            if (updateBusinessDto.BusinessDescription != null)
             {
-                business.Description = updateBusinessDto.Description;
+                business.BusinessProfile!.BusinessDescription = updateBusinessDto.BusinessDescription;
             }
 
             await _context.SaveChangesAsync();
-            return Ok(business.ToBusinessDto());
+            return Ok(business.BusinessProfile!.ToBusinessDto());
         }
 
         [HttpDelete]
-        [Route("{id:int}")]
-        public async Task<IActionResult> DeleteBusiness([FromRoute] int id)
+        [Route("{id}")]
+        public async Task<IActionResult> DeleteBusiness([FromRoute] string id)
         {
-            var business = await _context.Businesses.FindAsync(id);
+            var business = await _context.Users
+                .Include(u => u.BusinessProfile)
+                .FirstOrDefaultAsync(u => u.Id == id && u.BusinessProfile != null);
             if (business == null)
             {
                 return NotFound($"Business with ID: {id} not found!");
             }
 
-            _context.Businesses.Remove(business);
+            _context.Users.Remove(business);
             await _context.SaveChangesAsync();
 
             return NoContent();

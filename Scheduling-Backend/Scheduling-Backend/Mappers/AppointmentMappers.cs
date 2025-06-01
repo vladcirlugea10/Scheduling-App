@@ -26,7 +26,7 @@ namespace Scheduling_Backend.Mappers
             };
         }
 
-        public static Appointment ToAppointmentFromCreateDto(this CreateAppointmentDto createAppointmentDto, int businessId)
+        public static Appointment ToAppointmentFromCreateDto(this CreateAppointmentDto createAppointmentDto, string businessId)
         {
             return new Appointment
             {
