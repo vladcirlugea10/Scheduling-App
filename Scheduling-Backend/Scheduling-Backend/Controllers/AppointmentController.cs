@@ -52,15 +52,15 @@ namespace Scheduling_Backend.Controllers
             return Ok(appointment.ToAppointmentDto());
         }
 
-        [HttpPost("{businessId:int}")]
-        public async Task<IActionResult> CreateAppointment([FromRoute] int businessId, [FromBody] CreateAppointmentDto createAppointmentDto)
+        [HttpPost("{businessId}")]
+        public async Task<IActionResult> CreateAppointment([FromRoute] string businessId, [FromBody] CreateAppointmentDto createAppointmentDto)
         {
             if(!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            var business = await _context.Businesses.AnyAsync(b => b.Id == businessId);
-            if (!business)
+            var business = await _context.Users.Include(u => u.BusinessProfile).FirstOrDefaultAsync(u => u.Id == businessId);
+            if (business == null || business.BusinessProfile == null)
             {
                 return NotFound($"Business with ID: {businessId} not found!");
             }
@@ -70,6 +70,7 @@ namespace Scheduling_Backend.Controllers
             }
 
             var appointment = createAppointmentDto.ToAppointmentFromCreateDto(businessId);
+            appointment.BusinessUser = business;
             await _context.Appointments.AddAsync(appointment);
             await _context.SaveChangesAsync();
 

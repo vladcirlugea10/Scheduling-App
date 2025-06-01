@@ -9,7 +9,8 @@ namespace Scheduling_Backend.Models
 {
     public class User : IdentityUser
     {
-        public string FirstName { get; set; } = string.Empty;
-        public string? LastName { get; set; }
+        public UserProfile? UserProfile { get; set; }
+        public BusinessProfile? BusinessProfile { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

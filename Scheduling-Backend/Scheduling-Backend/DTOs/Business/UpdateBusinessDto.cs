@@ -7,10 +7,10 @@ namespace Scheduling_Backend.DTOs.Business
 {
     public class UpdateBusinessDto
     {
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Phone { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
+        public string? BusinessName { get; set; }
+        public string? BusinessEmail { get; set; }
+        public string? BusinessPhone { get; set; }
+        public string? BusinessAddress { get; set; }
+        public string? BusinessDescription { get; set; }
     }
 }

@@ -5,59 +5,98 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Scheduling_Backend.Data;
+using Scheduling_Backend.DTOs.Business;
 using Scheduling_Backend.DTOs.User;
 using Scheduling_Backend.Interfaces;
 using Scheduling_Backend.Models;
 
 namespace Scheduling_Backend.Controllers
 {
-    [Route("api/userauth")]
+    [Route("api/auth")]
     [ApiController]
     public class UserAuthController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
         private readonly ITokenService _tokenService;
         private readonly SignInManager<User> _signInManager;
-        public UserAuthController(UserManager<User> userManager, ITokenService tokenService, SignInManager<User> signInManager)
+        private readonly AppDBContext _context;
+        public UserAuthController(UserManager<User> userManager, ITokenService tokenService, SignInManager<User> signInManager, AppDBContext context)
         {
             _userManager = userManager;
             _tokenService = tokenService;
             _signInManager = signInManager;
+            _context = context;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> LoginUser([FromBody] UserLoginDto userLoginDto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
-            }
-
-            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == userLoginDto.Email);
-            if (user == null)
-            {
-                return Unauthorized("Username not found!");
-            }
-
-            var result = await _signInManager.CheckPasswordSignInAsync(user, userLoginDto.Password, false);
-            if (!result.Succeeded)
-            {
-                return Unauthorized("Invalid email or password!");
-            }
-
-            return Ok(
-                new NewUserDto
+                if (!ModelState.IsValid)
                 {
-                    Email = user.Email,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    PhoneNumber = user.PhoneNumber,
-                    Token = _tokenService.CreateToken(user)
+                    return BadRequest(ModelState);
                 }
-            );
+
+                var user = await _userManager.Users
+                    .Include(u => u.UserProfile)
+                    .Include(u => u.BusinessProfile)
+                    .FirstOrDefaultAsync(u => u.Email == userLoginDto.Email);
+                if (user == null)
+                {
+                    return Unauthorized("Email not found!");
+                }
+
+                var result = await _signInManager.CheckPasswordSignInAsync(user, userLoginDto.Password, false);
+                if (!result.Succeeded)
+                {
+                    return Unauthorized("Invalid email or password!");
+                }
+                if (await _userManager.IsInRoleAsync(user, "User"))
+                {
+                    if (user.UserProfile == null)
+                    {
+                        return StatusCode(500, "UserProfile is not set for this user.");
+                    }
+                    return Ok(
+                        new NewUserDto
+                        {
+                            Email = user.Email!,
+                            FirstName = user.UserProfile.FirstName,
+                            LastName = user.UserProfile.LastName,
+                            PhoneNumber = user.PhoneNumber,
+                            Token = _tokenService.CreateToken(user)
+                        }
+                    );
+                }
+                if (await _userManager.IsInRoleAsync(user, "Business"))
+                {
+                    if (user.BusinessProfile == null)
+                    {
+                        return StatusCode(500, "BusinessProfile is not set for this user.");
+                    }
+                    return Ok(
+                        new NewBusinessDto
+                        {
+                            BusinessEmail = user.Email!,
+                            BusinessName = user.BusinessProfile.BusinessName,
+                            BusinessPhone = user.PhoneNumber!,
+                            BusinessAddress = user.BusinessProfile.BusinessAddress,
+                            BusinessDescription = user.BusinessProfile.BusinessDescription,
+                            BusinessToken = _tokenService.CreateToken(user)
+                        }
+                    );
+                }
+                return Unauthorized("User is not registered as either User or Business!");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Internal server error: {e.Message}");
+            }
         }
 
-        [HttpPost("register")]
+        [HttpPost("register/user")]
         public async Task<IActionResult> RegisterUser([FromBody] UserRegisterDto userRegisterDto)
         {
             try
@@ -70,8 +109,6 @@ namespace Scheduling_Backend.Controllers
                 var user = new User
                 {
                     UserName = userRegisterDto.Email,
-                    FirstName = userRegisterDto.FirstName,
-                    LastName = userRegisterDto.LastName,
                     Email = userRegisterDto.Email,
                     PhoneNumber = userRegisterDto.PhoneNumber,
                 };
@@ -82,13 +119,23 @@ namespace Scheduling_Backend.Controllers
                     var roleResult = await _userManager.AddToRoleAsync(user, "User");
                     if (roleResult.Succeeded)
                     {
+                        var userProfile = new UserProfile
+                        {
+                            UserId = user.Id,
+                            FirstName = userRegisterDto.FirstName,
+                            LastName = userRegisterDto.LastName
+                        };
+
+                        await _context.UserProfiles.AddAsync(userProfile);
+                        await _context.SaveChangesAsync();
+
                         return Ok(
                             new NewUserDto
                             {
-                                Email = user.Email,
-                                FirstName = user.FirstName,
-                                LastName = user.LastName,
-                                PhoneNumber = user.PhoneNumber,
+                                Email = user.Email!,
+                                FirstName = user.UserProfile.FirstName,
+                                LastName = user.UserProfile.LastName,
+                                PhoneNumber = user.PhoneNumber!,
                                 Token = _tokenService.CreateToken(user)
                             }
                         );
@@ -101,6 +148,68 @@ namespace Scheduling_Backend.Controllers
                 else
                 {
                     return StatusCode(500, createdUser.Errors.Select(e => e.Description));
+                }
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Internal server error: {e.Message}");
+            }
+        }
+
+        [HttpPost("register/business")]
+        public async Task<IActionResult> RegisterBusiness([FromBody] BusinessRegisterDto businessRegisterDto)
+        {
+            try
+            {
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var business = new User
+                {
+                    UserName = businessRegisterDto.Email,
+                    Email = businessRegisterDto.Email,
+                    PhoneNumber = businessRegisterDto.Phone,
+                };
+                var createdBusiness = await _userManager.CreateAsync(business, businessRegisterDto.Password);
+                if (createdBusiness.Succeeded)
+                {
+                    var roleResult = await _userManager.AddToRoleAsync(business, "Business");
+                    if (roleResult.Succeeded)
+                    {
+                        var businessProfile = new BusinessProfile
+                        {
+                            UserId = business.Id,
+                            BusinessName = businessRegisterDto.Name,
+                            BusinessAddress = businessRegisterDto.Address,
+                            BusinessDescription = businessRegisterDto.Description
+                        };
+
+                        await _context.BusinessProfiles.AddAsync(businessProfile);
+                        await _context.SaveChangesAsync();
+
+                        return Ok(
+                            new NewBusinessDto
+                            {
+                                BusinessEmail = business.Email,
+                                BusinessName = business.BusinessProfile.BusinessName,
+                                BusinessPhone = business.PhoneNumber,
+                                BusinessAddress = business.BusinessProfile.BusinessAddress,
+                                BusinessDescription = business.BusinessProfile.BusinessDescription,
+                                BusinessToken = _tokenService.CreateToken(business)
+                            }
+                        );
+                    }
+                    else
+                    {
+                        return StatusCode(500, roleResult.Errors.Select(e => e.Description));
+                    }
+                }
+                else
+                {
+                    return StatusCode(500, createdBusiness.Errors.Select(e => e.Description));
                 }
             }
             catch (Exception e)

@@ -11,7 +11,6 @@ namespace Scheduling_Backend.DTOs.Appointment
         [Required]
         [MinLength(3, ErrorMessage = "Client name must be between 3 and 30 characters.")]
         [MaxLength(30, ErrorMessage = "Client name must be between 3 and 30 characters.")]
-        [RegularExpression(@"^[a-zA-Z\s\-]+$", ErrorMessage = "Client name can only contain letters, dashes and spaces.")]
         public string ClientName { get; set; } = string.Empty;
         [Required]
         [EmailAddress]

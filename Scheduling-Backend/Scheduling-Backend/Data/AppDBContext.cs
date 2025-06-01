@@ -16,11 +16,24 @@ namespace Scheduling_Backend.Data
 
         }
 
+        public DbSet<UserProfile> UserProfiles { get; set; }
+        public DbSet<BusinessProfile> BusinessProfiles { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
-        public DbSet<Business> Businesses { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<User>()
+                .HasOne(u => u.UserProfile)
+                .WithOne(p => p.User)
+                .HasForeignKey<UserProfile>(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<User>()
+                .HasOne(u => u.BusinessProfile)
+                .WithOne(p => p.User)
+                .HasForeignKey<BusinessProfile>(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             List<IdentityRole> roles = new List<IdentityRole>
             {
