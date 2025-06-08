@@ -26,5 +26,6 @@ namespace Scheduling_Backend.DTOs.Business
         [MinLength(10, ErrorMessage = "Description must be at least 10 characters long")]
         public string Description { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
 }

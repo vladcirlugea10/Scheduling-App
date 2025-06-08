@@ -6,6 +6,7 @@ import Login from './Pages/Login/Login';
 import RegisterUser from './Pages/Register/RegisterUser/RegisterUser';
 import RegisterBusiness from './Pages/Register/RegisterBusiness/RegisterBusiness';
 import RoleChooser from './Pages/Register/RoleChooser/RoleChooser';
+import ForgotPassword from './Pages/ForgotPassword/ForgotPassword';
 
 const App = () => {
   return (
@@ -16,6 +17,7 @@ const App = () => {
         <Route path="/role-chooser" element={<RoleChooser />} />
         <Route path="/register-user" element={<RegisterUser />} />
         <Route path="/register-business" element={<RegisterBusiness />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
       </Routes>
     </Router>
   );

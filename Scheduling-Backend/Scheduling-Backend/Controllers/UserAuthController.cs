@@ -45,13 +45,13 @@ namespace Scheduling_Backend.Controllers
                     .FirstOrDefaultAsync(u => u.Email == userLoginDto.Email);
                 if (user == null)
                 {
-                    return Unauthorized("Email not found!");
+                    return Unauthorized(new { message = "Invalid email or password!" });
                 }
 
                 var result = await _signInManager.CheckPasswordSignInAsync(user, userLoginDto.Password, false);
                 if (!result.Succeeded)
                 {
-                    return Unauthorized("Invalid email or password!");
+                    return Unauthorized(new { message = "Invalid email or password!" });
                 }
                 if (await _userManager.IsInRoleAsync(user, "User"))
                 {
@@ -103,7 +103,17 @@ namespace Scheduling_Backend.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);
+                    var firstError = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .FirstOrDefault();
+
+                    return BadRequest(new { message = firstError ?? "Invalid input." });
+                }
+
+                if (userRegisterDto.Password != userRegisterDto.ConfirmPassword)
+                {
+                    return BadRequest(new { message = "Passwords do not match!" });
                 }
 
                 var user = new User
@@ -161,10 +171,14 @@ namespace Scheduling_Backend.Controllers
         {
             try
             {
-
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
+                }
+
+                if (businessRegisterDto.Password != businessRegisterDto.ConfirmPassword)
+                {
+                    return BadRequest(new { message = "Passwords do not match!" });
                 }
 
                 var business = new User

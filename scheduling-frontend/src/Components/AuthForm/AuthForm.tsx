@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { RefObject, useState } from "react";
 import Button from "../Button/Button";
 import './AuthForm.css';
 import { Eye, EyeClosed } from "lucide-react";
@@ -15,11 +15,12 @@ type InputField = {
 type FormProps = {
     title: string;
     fields: InputField[];
+    refs?: RefObject<HTMLInputElement | HTMLTextAreaElement | null>[];
     buttonText: string;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 };
 
-export default function AuthForm({ title, fields, buttonText, onSubmit }: FormProps){
+export default function AuthForm({ title, fields, refs, buttonText, onSubmit }: FormProps){
     const [passwordVisibility, setPasswordVisibility] = useState<{ [key: number]: boolean }>({});
 
     const togglePasswordVisibility = (index: number) => {
@@ -37,10 +38,10 @@ export default function AuthForm({ title, fields, buttonText, onSubmit }: FormPr
                     <div key={index} className={field.label ? 'optional-fields-container' : ''}>
                         {field.label && <label htmlFor={field.id}>{field.label}</label>}
                         {field.textArea ? (
-                            <textarea placeholder={field.placeholder} id={field.id} required={field.required} />
+                            <textarea ref={refs?.[index] as RefObject<HTMLTextAreaElement>} placeholder={field.placeholder} id={field.id} required={field.required} />
                             ) : (
                             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                <input type={field.type === 'password' && passwordVisibility[index] ? 'text' : field.type} placeholder={field.placeholder} id={field.id} required={field.required} />
+                                <input ref={refs?.[index] as RefObject<HTMLInputElement>} type={field.type === 'password' && passwordVisibility[index] ? 'text' : field.type} placeholder={field.placeholder} id={field.id} required={field.required} />
                                 {field.type === 'password' && (
                                     <div style={{ position: 'absolute', right: 0, marginRight: '0.5rem', cursor: 'pointer'}} onClick={() => togglePasswordVisibility(index)}>
                                         {passwordVisibility[index] ? <Eye /> : <EyeClosed />}

@@ -23,7 +23,7 @@ export default function Home() {
                 <p className='subtitle'>An easy to use scheduling application for your business. Manage appointments and organize your schedule while maximizing efficiency for your business!</p>
                 <div className='button-container'>
                     <Button onClick={() => console.log("Learn more")} variant='secondary' >Learn More</Button>
-                    <Button onClick={() => navigation("/register-business")} variant='primary'>Get Started</Button>
+                    <Button onClick={() => navigation("/role-chooser")} variant='primary'>Get Started</Button>
                 </div>
             </div>
         </div>
