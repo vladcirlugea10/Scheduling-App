@@ -7,19 +7,26 @@ import RegisterUser from './Pages/Register/RegisterUser/RegisterUser';
 import RegisterBusiness from './Pages/Register/RegisterBusiness/RegisterBusiness';
 import RoleChooser from './Pages/Register/RoleChooser/RoleChooser';
 import ForgotPassword from './Pages/ForgotPassword/ForgotPassword';
+import AuthProvider from './Hooks/useAuth';
 
 const App = () => {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />}/>
-        <Route path="/role-chooser" element={<RoleChooser />} />
-        <Route path="/register-user" element={<RegisterUser />} />
-        <Route path="/register-business" element={<RegisterBusiness />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-      </Routes>
-    </Router>
+    <>
+      <AuthProvider>
+        
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />}/>
+          <Route path="/role-chooser" element={<RoleChooser />} />
+          <Route path="/register-user" element={<RegisterUser />} />
+          <Route path="/register-business" element={<RegisterBusiness />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        </Routes>
+      </Router>
+
+      </AuthProvider>
+    </>
   );
 }
 

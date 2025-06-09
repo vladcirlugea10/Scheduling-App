@@ -1,3 +1,8 @@
+:root {
+  --danger-color: #EC1D1D;
+  --success-color: #28A745;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -27,6 +32,12 @@ h1 {
 p {
   font-size: 1.1rem;
   line-height: 1.6;
+}
+
+.error-text {
+  color: var(--danger-color);
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 input, textarea {
@@ -102,6 +113,32 @@ input,textarea:hover {
     }
     to {
         opacity: 1;
+    }
+}
+
+.shake {
+    animation-name: shake;
+    animation-duration: 0.75s;
+    animation-iteration-count: 2;
+    animation-timing-function: ease-in-out;
+    animation-delay: 0.5s;
+}
+
+@keyframes shake {
+    0% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-10px);
+    }
+    50% {
+      transform: translateX(10px);
+    }
+    75% {
+      transform: translateX(-10px);
+    }
+    100% {
+      transform: translateX(0);
     }
 }
 

@@ -12,6 +12,5 @@ namespace Scheduling_Backend.DTOs.Business
         public string BusinessPhone { get; set; } = string.Empty;
         public string BusinessAddress { get; set; } = string.Empty;
         public string BusinessDescription { get; set; } = string.Empty;
-        public string BusinessToken { get; set; } = string.Empty;
     }
 }

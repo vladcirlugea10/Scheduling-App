@@ -53,11 +53,22 @@ namespace Scheduling_Backend.Controllers
                 {
                     return Unauthorized(new { message = "Invalid email or password!" });
                 }
+
+                var token = _tokenService.CreateToken(user);
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false, // SET TO TRUE IN PRODUCTION
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.Now.AddDays(7)
+                };
+                Response.Cookies.Append("token", token, cookieOptions);
+
                 if (await _userManager.IsInRoleAsync(user, "User"))
                 {
                     if (user.UserProfile == null)
                     {
-                        return StatusCode(500, "UserProfile is not set for this user.");
+                        return StatusCode(500, new { message = "UserProfile is not set for this user." });
                     }
                     return Ok(
                         new NewUserDto
@@ -66,7 +77,6 @@ namespace Scheduling_Backend.Controllers
                             FirstName = user.UserProfile.FirstName,
                             LastName = user.UserProfile.LastName,
                             PhoneNumber = user.PhoneNumber,
-                            Token = _tokenService.CreateToken(user)
                         }
                     );
                 }
@@ -74,7 +84,7 @@ namespace Scheduling_Backend.Controllers
                 {
                     if (user.BusinessProfile == null)
                     {
-                        return StatusCode(500, "BusinessProfile is not set for this user.");
+                        return StatusCode(500, new { message = "BusinessProfile is not set for this user." });
                     }
                     return Ok(
                         new NewBusinessDto
@@ -84,15 +94,14 @@ namespace Scheduling_Backend.Controllers
                             BusinessPhone = user.PhoneNumber!,
                             BusinessAddress = user.BusinessProfile.BusinessAddress,
                             BusinessDescription = user.BusinessProfile.BusinessDescription,
-                            BusinessToken = _tokenService.CreateToken(user)
                         }
                     );
                 }
-                return Unauthorized("User is not registered as either User or Business!");
+                return Unauthorized( new { message = "User is not registered as either User or Business!" });
             }
             catch (Exception e)
             {
-                return StatusCode(500, $"Internal server error: {e.Message}");
+                return StatusCode(500, new { message = $"Internal server error: {e.Message}" });
             }
         }
 
@@ -146,7 +155,6 @@ namespace Scheduling_Backend.Controllers
                                 FirstName = user.UserProfile.FirstName,
                                 LastName = user.UserProfile.LastName,
                                 PhoneNumber = user.PhoneNumber!,
-                                Token = _tokenService.CreateToken(user)
                             }
                         );
                     }
@@ -212,18 +220,17 @@ namespace Scheduling_Backend.Controllers
                                 BusinessPhone = business.PhoneNumber,
                                 BusinessAddress = business.BusinessProfile.BusinessAddress,
                                 BusinessDescription = business.BusinessProfile.BusinessDescription,
-                                BusinessToken = _tokenService.CreateToken(business)
                             }
                         );
                     }
                     else
                     {
-                        return StatusCode(500, roleResult.Errors.Select(e => e.Description));
+                        return StatusCode(500, new { message = roleResult.Errors.Select(e => e.Description) });
                     }
                 }
                 else
                 {
-                    return StatusCode(500, createdBusiness.Errors.Select(e => e.Description));
+                    return StatusCode(500, new { message = createdBusiness.Errors.Select(e => e.Description) });
                 }
             }
             catch (Exception e)

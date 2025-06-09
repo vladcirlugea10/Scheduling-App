@@ -1,25 +1,20 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import './RegisterUser.css';
-import AuthForm from '../../../Components/AuthForm/AuthForm';
 import { useAuth } from '../../../Hooks/useAuth';
 import { UserRegistration } from '../../../Types/UserTypes';
 import CustomBarLoader from '../../../Components/Spinners/CustomBarLoader';
+import { Eye, EyeClosed } from 'lucide-react';
+import Button from '../../../Components/Button/Button';
 
 export default function RegisterUser() {
-  const fields = [
-    { type: 'email', placeholder: 'Your email', required: true },
-    { type: 'text', placeholder: 'Your first name', required: true },
-    { type: 'text', placeholder: 'Your last name', id: 'last-name', label: 'Optional', required: false },
-    { type: 'tel', placeholder: 'Your phone number', id: 'phone-number', label: 'Optional', required: false },
-    { type: 'password', placeholder: 'Your password', required: true },
-    { type: 'password', placeholder: 'Confirm your password', required: true }
-  ];
-  const emailRef = useRef<HTMLInputElement>(null);
-  const firstNameRef = useRef<HTMLInputElement>(null);
-  const lastNameRef = useRef<HTMLInputElement>(null);
-  const phoneNumberRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-  const confirmPasswordRef = useRef<HTMLInputElement>(null);
+  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
   const targetRef = React.useRef<HTMLDivElement>(null);
 
@@ -32,14 +27,13 @@ export default function RegisterUser() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const newUser: UserRegistration = {
-      email: emailRef.current?.value || '',
-      firstName: firstNameRef.current?.value || '',
-      lastName: lastNameRef.current?.value || '',
-      phoneNumber: phoneNumberRef.current?.value || null,
-      password: passwordRef.current?.value || '',
-      confirmPassword: confirmPasswordRef.current?.value || ''
+      email: email,
+      firstName: firstName,
+      lastName: lastName || '',
+      phoneNumber: phoneNumber || null,
+      password: password,
+      confirmPassword: confirmPassword
     };
-    console.log("Data:", newUser);
     console.log("Form submitted");
 
     await onRegisterUser(newUser);
@@ -48,14 +42,42 @@ export default function RegisterUser() {
 
   if (loading){
     return(
-      <CustomBarLoader />
+      <CustomBarLoader text='Creating your account...' />
     );
   }
 
   return (
     <div className='main-container'>
       <div ref={targetRef} className='auth-container register-container transparent fade-in'>
-        <AuthForm refs={[emailRef, firstNameRef, lastNameRef, phoneNumberRef, passwordRef, confirmPasswordRef]} title="Welcome! Create your user account to get started!" fields={fields} buttonText='Create you account' onSubmit={handleSubmit} />
+        <form onSubmit={handleSubmit}>
+          <h2 className="auth-form-title">Welcome! Create your user account to get started!</h2>
+          <div className='input-container'>
+            <input type='email' placeholder='Your email' value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input type='text' placeholder='Your First name' value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+              <label>Optional field</label>
+              <input type='text' placeholder='Your Last name' value={lastName} onChange={(e) => setLastName(e.target.value)} />
+            </div>
+            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+              <label>Optional field</label>
+              <input type='tel' placeholder='Your Phone number' value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+            </div>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input type={passwordVisible ? 'text' : 'password'} placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <div style={{ position: 'absolute', right: 0, marginRight: '0.5rem', cursor: 'pointer' }} onClick={() => setPasswordVisible(!passwordVisible)}>
+                { passwordVisible ? (<Eye />) : (<EyeClosed />) }
+              </div>
+            </div>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input type={confirmPasswordVisible ? 'text' : 'password'} placeholder='Confirm Password' value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+              <div style={{ position: 'absolute', right: 0, marginRight: '0.5rem', cursor: 'pointer' }} onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}>
+                { confirmPasswordVisible ? (<Eye />) : (<EyeClosed />) }
+              </div>
+            </div>
+            {error && <p className='error-text shake'>{error}</p>}
+            <Button type='submit'>Create your account</Button>
+          </div>
+        </form>
       </div>
     </div>
   )
