@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scheduling_Backend.Data;
 using Scheduling_Backend.DTOs.Business;
 using Scheduling_Backend.DTOs.User;
@@ -54,7 +58,7 @@ namespace Scheduling_Backend.Controllers
                     return Unauthorized(new { message = "Invalid email or password!" });
                 }
 
-                var token = _tokenService.CreateToken(user);
+                var token = await _tokenService.CreateToken(user);
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
@@ -77,6 +81,7 @@ namespace Scheduling_Backend.Controllers
                             FirstName = user.UserProfile.FirstName,
                             LastName = user.UserProfile.LastName,
                             PhoneNumber = user.PhoneNumber,
+                            Role = "User"
                         }
                     );
                 }
@@ -94,10 +99,11 @@ namespace Scheduling_Backend.Controllers
                             BusinessPhone = user.PhoneNumber!,
                             BusinessAddress = user.BusinessProfile.BusinessAddress,
                             BusinessDescription = user.BusinessProfile.BusinessDescription,
+                            Role = "Business"
                         }
                     );
                 }
-                return Unauthorized( new { message = "User is not registered as either User or Business!" });
+                return Unauthorized(new { message = "User is not registered as either User or Business!" });
             }
             catch (Exception e)
             {
@@ -155,6 +161,7 @@ namespace Scheduling_Backend.Controllers
                                 FirstName = user.UserProfile.FirstName,
                                 LastName = user.UserProfile.LastName,
                                 PhoneNumber = user.PhoneNumber!,
+                                Role = "User"
                             }
                         );
                     }
@@ -220,6 +227,7 @@ namespace Scheduling_Backend.Controllers
                                 BusinessPhone = business.PhoneNumber,
                                 BusinessAddress = business.BusinessProfile.BusinessAddress,
                                 BusinessDescription = business.BusinessProfile.BusinessDescription,
+                                Role = "Business"
                             }
                         );
                     }
@@ -237,6 +245,42 @@ namespace Scheduling_Backend.Controllers
             {
                 return StatusCode(500, $"Internal server error: {e.Message}");
             }
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            Response.Cookies.Delete("token");
+            try
+            {
+                await _signInManager.SignOutAsync();
+                return Ok(new { message = "Logged out successfully." });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { message = $"Internal server error: {e.Message}" });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("check-session")]
+        public async Task<IActionResult> CheckSession()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "Invalid token or session expired." });
+            }
+
+            return Ok(new
+            {
+                UserId = userId,
+                Email = email,
+                Role = role
+            });
         }
     }
 }

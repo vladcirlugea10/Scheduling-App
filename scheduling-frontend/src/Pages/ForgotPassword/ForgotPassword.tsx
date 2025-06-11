@@ -1,5 +1,4 @@
 import React, { useRef } from 'react'
-import AuthForm from '../../Components/AuthForm/AuthForm'
 
 export default function ForgotPassword() {
     const fields = [
@@ -17,7 +16,6 @@ export default function ForgotPassword() {
     return (
         <div className='main-container'>
             <div className='auth-container transparent fade-in'>
-                <AuthForm refs={[emailRef]} fields={fields} title='Enter the email associated to your account' buttonText='Get reset code' onSubmit={handleSubmit} />
             </div>
         </div>
     );

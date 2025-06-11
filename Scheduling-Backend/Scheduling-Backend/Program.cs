@@ -114,9 +114,10 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddCors(options => options.AddPolicy("AllowAll", policy =>
 {
-    policy.AllowAnyOrigin();
+    policy.WithOrigins("http://localhost:3000");
     policy.AllowAnyMethod();
     policy.AllowAnyHeader();
+    policy.AllowCredentials();
 }));
 
 var app = builder.Build();

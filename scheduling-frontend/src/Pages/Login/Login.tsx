@@ -6,6 +6,7 @@ import CustomBarLoader from '../../Components/Spinners/CustomBarLoader';
 import { Eye, EyeClosed } from 'lucide-react';
 import Button from '../../Components/Button/Button';
 import { toast, ToastContainer } from 'react-toastify';
+import SimpleHeader from '../../Components/SimpleHeader/SimpleHeader';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -14,7 +15,7 @@ export default function Login() {
 
   const navigation = useNavigate()
 
-  const { loading, error, onLogin } = useAuth();
+  const { loading, error, onLogin, userRole } = useAuth();
 
   useEffect(() => {
     if(error){
@@ -28,11 +29,23 @@ export default function Login() {
     }
   }, [error]);
 
+  useEffect(() => {
+    if(userRole){
+      console.log("User role changed: ", userRole);
+      if(userRole === 'Business'){
+        navigation('/business-dashboard');
+      } else {
+        navigation('/');
+      }
+    }
+  }, [userRole]);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Form submitted");
-
     await onLogin(email, password);
+    if(userRole === 'Business'){
+      navigation('/business-dashboard');
+    }
   }
 
   if (loading){
@@ -43,6 +56,7 @@ export default function Login() {
 
   return (
     <div className='main-container'>
+      <SimpleHeader />
       <div className='auth-container transparent fade-in'>
         <form onSubmit={handleSubmit}>
           <div className='title'>

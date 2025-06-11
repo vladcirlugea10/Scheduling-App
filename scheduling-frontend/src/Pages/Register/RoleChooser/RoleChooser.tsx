@@ -3,11 +3,13 @@ import './RoleChooser.css'
 import Button from '../../../Components/Button/Button'
 import { useNavigate } from 'react-router-dom'
 import { StoreIcon, User } from "lucide-react";
+import SimpleHeader from '../../../Components/SimpleHeader/SimpleHeader';
 
 export default function RoleChooser() {
     const navigation = useNavigate();
     return (
         <div className='main-container'>
+            <SimpleHeader />
             <div className='role-chooser-container'>
                 <h1>You are registering as</h1>
                 <div className='roles-container'>

@@ -5,6 +5,7 @@ import { UserRegistration } from '../../../Types/UserTypes';
 import CustomBarLoader from '../../../Components/Spinners/CustomBarLoader';
 import { Eye, EyeClosed } from 'lucide-react';
 import Button from '../../../Components/Button/Button';
+import SimpleHeader from '../../../Components/SimpleHeader/SimpleHeader';
 
 export default function RegisterUser() {
   const [email, setEmail] = useState('');
@@ -48,6 +49,7 @@ export default function RegisterUser() {
 
   return (
     <div className='main-container'>
+      <SimpleHeader />
       <div ref={targetRef} className='auth-container register-container transparent fade-in'>
         <form onSubmit={handleSubmit}>
           <h2 className="auth-form-title">Welcome! Create your user account to get started!</h2>

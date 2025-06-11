@@ -4,6 +4,7 @@ import { BusinessRegistration } from '../../../Types/BusinessTypes';
 import CustomBarLoader from '../../../Components/Spinners/CustomBarLoader';
 import { Eye, EyeClosed } from 'lucide-react';
 import Button from '../../../Components/Button/Button';
+import SimpleHeader from '../../../Components/SimpleHeader/SimpleHeader';
 
 export default function RegisterBusiness() {
   const [email, setEmail] = useState('');
@@ -49,6 +50,7 @@ export default function RegisterBusiness() {
 
   return (
     <div className='main-container'>
+      <SimpleHeader />
       <div ref={targetRef} className='auth-container register-container transparent fade-in'>
         <form onSubmit={handleSubmit}>
           <h2 className="auth-form-title">Welcome! Create your business account to get started!</h2>
