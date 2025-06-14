@@ -15,7 +15,7 @@ export default function Login() {
 
   const navigation = useNavigate()
 
-  const { loading, error, onLogin, userRole } = useAuth();
+  const { loading, error, onLogin, currentUser } = useAuth();
 
   useEffect(() => {
     if(error){
@@ -30,22 +30,21 @@ export default function Login() {
   }, [error]);
 
   useEffect(() => {
-    if(userRole){
-      console.log("User role changed: ", userRole);
-      if(userRole === 'Business'){
-        navigation('/business-dashboard');
-      } else {
+    if(currentUser?.role){
+      console.log("User role changed: ", currentUser.role);
+      if(currentUser.role === 'Business'){
+        navigation(`/business-dashboard/${currentUser.data.userId}`);
+      } else if(currentUser.role === 'User'){
+        navigation(`/user-dashboard/${currentUser.data.userId}`);
+      }else{
         navigation('/');
       }
     }
-  }, [userRole]);
+  }, [currentUser?.role, currentUser?.data.userId]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await onLogin(email, password);
-    if(userRole === 'Business'){
-      navigation('/business-dashboard');
-    }
   }
 
   if (loading){

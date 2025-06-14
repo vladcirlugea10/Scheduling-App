@@ -5,6 +5,7 @@ import CustomBarLoader from '../../../Components/Spinners/CustomBarLoader';
 import { Eye, EyeClosed } from 'lucide-react';
 import Button from '../../../Components/Button/Button';
 import SimpleHeader from '../../../Components/SimpleHeader/SimpleHeader';
+import { useNavigate } from 'react-router-dom';
 
 export default function RegisterBusiness() {
   const [email, setEmail] = useState('');
@@ -18,12 +19,19 @@ export default function RegisterBusiness() {
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
   const targetRef = React.useRef<HTMLDivElement>(null);
+  const navigation = useNavigate();
 
-  const { onRegisterBusiness, loading, error } = useAuth();
+  const { onRegisterBusiness, loading, error, isAuthenticated, currentUser } = useAuth();
 
   useEffect(() => {
     targetRef.current?.scrollIntoView({ behavior: 'smooth'});
   }, []);
+
+  useEffect(() => {
+    if(isAuthenticated && currentUser?.data.userId){
+      navigation(`/business-dashboard/${currentUser.data.userId}`);
+    }
+  }, [isAuthenticated]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -36,7 +44,6 @@ export default function RegisterBusiness() {
       password: password,
       confirmPassword: confirmPassword
     };
-    console.log("Data:", newBusiness);
     console.log("Form submitted");
     await onRegisterBusiness(newBusiness);
     console.log("Error:", error);

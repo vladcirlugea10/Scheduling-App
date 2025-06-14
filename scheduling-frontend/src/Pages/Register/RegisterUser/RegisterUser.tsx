@@ -6,6 +6,7 @@ import CustomBarLoader from '../../../Components/Spinners/CustomBarLoader';
 import { Eye, EyeClosed } from 'lucide-react';
 import Button from '../../../Components/Button/Button';
 import SimpleHeader from '../../../Components/SimpleHeader/SimpleHeader';
+import { useNavigate } from 'react-router-dom';
 
 export default function RegisterUser() {
   const [email, setEmail] = useState('');
@@ -18,12 +19,19 @@ export default function RegisterUser() {
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
   const targetRef = React.useRef<HTMLDivElement>(null);
+  const navigation = useNavigate();
 
-  const { onRegisterUser, loading, error } = useAuth();
+  const { onRegisterUser, loading, error, currentUser, isAuthenticated } = useAuth();
 
   useEffect(() => {
     targetRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
+
+  useEffect(() => {
+    if(isAuthenticated && currentUser?.data.userId){
+      navigation(`/user-dashboard/${currentUser.data.userId}`);
+    }
+  }, [isAuthenticated]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

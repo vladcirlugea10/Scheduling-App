@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Scheduling_Backend.Data;
 using Scheduling_Backend.DTOs.Business;
 using Scheduling_Backend.DTOs.User;
@@ -77,6 +76,7 @@ namespace Scheduling_Backend.Controllers
                     return Ok(
                         new NewUserDto
                         {
+                            UserId = user.Id,
                             Email = user.Email!,
                             FirstName = user.UserProfile.FirstName,
                             LastName = user.UserProfile.LastName,
@@ -94,6 +94,7 @@ namespace Scheduling_Backend.Controllers
                     return Ok(
                         new NewBusinessDto
                         {
+                            UserId = user.Id,
                             BusinessEmail = user.Email!,
                             BusinessName = user.BusinessProfile.BusinessName,
                             BusinessPhone = user.PhoneNumber!,
@@ -118,12 +119,7 @@ namespace Scheduling_Backend.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    var firstError = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .FirstOrDefault();
-
-                    return BadRequest(new { message = firstError ?? "Invalid input." });
+                    return BadRequest(ModelState);
                 }
 
                 if (userRegisterDto.Password != userRegisterDto.ConfirmPassword)
@@ -157,6 +153,7 @@ namespace Scheduling_Backend.Controllers
                         return Ok(
                             new NewUserDto
                             {
+                                UserId = user.Id,
                                 Email = user.Email!,
                                 FirstName = user.UserProfile.FirstName,
                                 LastName = user.UserProfile.LastName,
@@ -222,6 +219,7 @@ namespace Scheduling_Backend.Controllers
                         return Ok(
                             new NewBusinessDto
                             {
+                                UserId = business.Id,
                                 BusinessEmail = business.Email,
                                 BusinessName = business.BusinessProfile.BusinessName,
                                 BusinessPhone = business.PhoneNumber,
@@ -275,12 +273,50 @@ namespace Scheduling_Backend.Controllers
                 return Unauthorized(new { message = "Invalid token or session expired." });
             }
 
-            return Ok(new
+            if (role == "User")
             {
-                UserId = userId,
-                Email = email,
-                Role = role
-            });
+                var user = await _userManager.Users
+                    .Include(u => u.UserProfile)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+                if (user == null)
+                {
+                    return NotFound(new { message = "User not found." });
+                }
+                return Ok(
+                    new NewUserDto
+                    {
+                        UserId = userId,
+                        Email = email!,
+                        FirstName = user.UserProfile.FirstName,
+                        LastName = user.UserProfile.LastName,
+                        PhoneNumber = user.PhoneNumber,
+                        Role = role
+                    }
+                );
+            }
+            if (role == "Business")
+            {
+                var user = await _userManager.Users
+                    .Include(u => u.BusinessProfile)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+                if (user == null)
+                {
+                    return NotFound(new { message = "Business not found." });
+                }
+                return Ok(
+                    new NewBusinessDto
+                    {
+                        UserId = userId,
+                        BusinessEmail = email!,
+                        BusinessName = user.BusinessProfile.BusinessName,
+                        BusinessPhone = user.PhoneNumber!,
+                        BusinessAddress = user.BusinessProfile.BusinessAddress,
+                        BusinessDescription = user.BusinessProfile.BusinessDescription,
+                        Role = role
+                    }
+                );
+            }
+            return Unauthorized(new { message = "User is not registered as either User or Business!" });
         }
     }
 }

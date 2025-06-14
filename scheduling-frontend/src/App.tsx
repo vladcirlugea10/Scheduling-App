@@ -7,9 +7,11 @@ import RegisterUser from './Pages/Register/RegisterUser/RegisterUser';
 import RegisterBusiness from './Pages/Register/RegisterBusiness/RegisterBusiness';
 import RoleChooser from './Pages/Register/RoleChooser/RoleChooser';
 import ForgotPassword from './Pages/ForgotPassword/ForgotPassword';
-import AuthProvider, { useAuth } from './Hooks/useAuth';
-import BusinessDashboard from './Pages/BusinessDashboard/BusinessDashboard';
-import ProtectedRoutes from './Utils/ProtectedRoutes';
+import AuthProvider from './Hooks/useAuth';
+import BusinessDashboard from './Pages/Dashboards/BusinessDashboard/BusinessDashboard';
+import ProtectedBusinessRoutes from './Utils/ProtectedBusinessRoutes';
+import ProtectedUserRoutes from './Utils/ProtectedUserRoutes';
+import UserDashboard from './Pages/Dashboards/UserDashboard/UserDashboard';
 
 const App = () => {
   return (
@@ -25,9 +27,14 @@ const App = () => {
           <Route path="/register-business" element={<RegisterBusiness />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           
-          <Route element={<ProtectedRoutes />}>
-            <Route path='/business-dashboard' element={<BusinessDashboard />}/>
+          <Route element={<ProtectedBusinessRoutes />}>
+            <Route path='/business-dashboard/:userId' element={<BusinessDashboard />}/>
           </Route>
+
+          <Route element={<ProtectedUserRoutes />}>
+            <Route path='/user-dashboard/:userId' element={<UserDashboard />}/>
+          </Route>
+
         </Routes>
       </Router>
 

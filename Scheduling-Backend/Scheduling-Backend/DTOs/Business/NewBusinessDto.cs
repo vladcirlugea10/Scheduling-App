@@ -7,6 +7,7 @@ namespace Scheduling_Backend.DTOs.Business
 {
     public class NewBusinessDto
     {
+        public string UserId { get; set; } = string.Empty;
         public string BusinessEmail { get; set; } = string.Empty;
         public string BusinessName { get; set; } = string.Empty;
         public string BusinessPhone { get; set; } = string.Empty;

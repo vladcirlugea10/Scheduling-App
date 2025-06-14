@@ -1,7 +1,9 @@
 import { createContext, Provider, useContext, useEffect, useState } from "react"
 import axios from "axios";
-import { UserRegistration } from "../Types/UserTypes";
-import { BusinessRegistration } from "../Types/BusinessTypes";
+import { User, UserRegistration } from "../Types/UserTypes";
+import { Business, BusinessRegistration } from "../Types/BusinessTypes";
+
+type AuthenticatedUser = { role: 'User'; data: User } | { role: 'Business'; data: Business } | null;
 
 interface AuthContextType {
     onLogin: (email: string, password: string) => Promise<void>;
@@ -14,6 +16,10 @@ interface AuthContextType {
     error: string | null;
     isAuthenticated: boolean;
     userRole?: 'User' | 'Business' | null;
+    userId?: string | null;
+    business?: Business | null;
+    user?: User | null;
+    currentUser?: AuthenticatedUser;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,6 +29,10 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     const [error, setError] = useState<string | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userRole, setUserRole] = useState<'User' | 'Business' | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
+    const [business, setBusiness] = useState<Business | null>(null);
+    const [user, setUser] = useState<User | null>(null);
+    const [currentUser, setCurrentUser] = useState<AuthenticatedUser>(null);
 
     useEffect(() => {
         checkSession();
@@ -38,8 +48,14 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
                 }
             });
             console.log("Session check response:", response);
+            if(response.data.role === 'User'){
+                setCurrentUser({ role: 'User', data: response.data as User });
+            } else if(response.data.role === 'Business'){
+                setCurrentUser({ role: 'Business', data: response.data as Business });
+            }
             setIsAuthenticated(true);
             setUserRole(response.data.role);
+            setUserId(response.data.userId);
         }catch(error: any){
             if (error.response?.status === 401) {
                 setIsAuthenticated(false);
@@ -67,19 +83,33 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
                 withCredentials: true
             });
             console.log("Response:", response);
+            if(response.data.role === 'User'){
+                setCurrentUser({ role: 'User', data: response.data as User });
+            } else if(response.data.role === 'Business'){
+                setCurrentUser({ role: 'Business', data: response.data as Business });
+            }
+            setUserId(response.data.id);
             setUserRole(response.data.role);
+            if(response.data.role === 'User'){
+                setUser(response.data as User);
+            }else if(response.data.role === 'Business'){
+                setBusiness(response.data as Business);
+            }
+            setUserId(response.data.id);
+            setUserRole(response.data.role);
+            setBusiness(response.data);
             setIsAuthenticated(true);
         }catch(error: any){
-            const errors = error.response?.data?.errors;
-            if (errors){
-                const modelErrors = Object.values(error.response?.data?.errors).flat();
-                if(modelErrors){
-                    setError(modelErrors.join('\n'));
-                }
-            }else{
-                setError(error.response?.data?.message || "An error occurred");
+            const errorData = error.response?.data;
+            if (Array.isArray(errorData)) {
+                setError(errorData.join('\n'));
+            } else if (errorData?.errors) {
+                const modelErrors = Object.values(errorData.errors).flat();
+                setError(modelErrors.join('\n'));
+            } else {
+                setError(errorData?.message || "An error occurred");
             }
-            console.error("Error during login:", error);
+            console.error("Error during user registration:", error);
         }finally {
             setLoading(false);
         }
@@ -96,12 +126,17 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
             });
             console.log("Response:", response);
             setIsAuthenticated(true);
+            setUserRole(response.data.role);
+            setUserId(response.data.id);
         } catch (error: any) {
-            const modelErrors = Object.values(error.response?.data?.errors).flat();
-            if(modelErrors){
+            const errorData = error.response?.data;
+            if (Array.isArray(errorData)) {
+                setError(errorData.join('\n'));
+            } else if (errorData?.errors) {
+                const modelErrors = Object.values(errorData.errors).flat();
                 setError(modelErrors.join('\n'));
-            }else{
-                setError(error.response?.data?.message || "An error occurred");
+            } else {
+                setError(errorData?.message || "An error occurred");
             }
             console.error("Error during user registration:", error);
         } finally {
@@ -120,12 +155,17 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
             });
             console.log("Response:", response);
             setIsAuthenticated(true);
+            setUserRole(response.data.role);
+            setUserId(response.data.id);
         }catch(error: any){
-            const modelErrors = Object.values(error.response?.data?.errors).flat();
-            if(modelErrors){
+            const errorData = error.response?.data;
+            if(Array.isArray(errorData)){
+                setError(errorData.join('\n'));
+            }else if(errorData?.errors){
+                const modelErrors = Object.values(errorData.errors).flat();
                 setError(modelErrors.join('\n'));
             }else{
-                setError(error.response?.data?.message || "An error occurred");
+                setError(errorData?.message || "An error occurred");
             }
             console.error("Error during business registration:", error);
         }finally {
@@ -146,6 +186,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
             console.log("Response:", response);
             setIsAuthenticated(false);
             setUserRole(null);
+            setCurrentUser(null);
         }catch(error: any){
             setError(error.response?.data?.message || "An error occurred");
             console.error("Error during logout:", error);
@@ -165,7 +206,11 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
             loading,
             error,
             isAuthenticated,
-            userRole
+            userRole,
+            userId,
+            business,
+            user,
+            currentUser
         }}>
             {children}
         </AuthContext.Provider>

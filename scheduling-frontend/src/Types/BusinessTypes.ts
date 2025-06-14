@@ -7,3 +7,13 @@ export interface BusinessRegistration {
     password: string;
     confirmPassword: string;
 }
+
+export interface Business {
+    userId: string;
+    businessEmail: string;
+    businessName: string;
+    businessPhone: string;
+    businessAddress: string;
+    businessDescription: string;
+    role: string;
+}
