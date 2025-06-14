@@ -80,6 +80,9 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme =
     options.DefaultSignInScheme =
     options.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddCookie(c =>
+{
+    c.Cookie.Name = "token";
 }).AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
@@ -91,11 +94,31 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(
             System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"])
-        )
+        ),
+        ValidateLifetime = true,
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.ContainsKey("token"))
+            {
+                context.Token = context.Request.Cookies["token"];
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
 builder.Services.AddScoped<ITokenService, TokenService>();
+
+builder.Services.AddCors(options => options.AddPolicy("AllowAll", policy =>
+{
+    policy.WithOrigins("http://localhost:3000");
+    policy.AllowAnyMethod();
+    policy.AllowAnyHeader();
+    policy.AllowCredentials();
+}));
 
 var app = builder.Build();
 
@@ -105,6 +128,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 

@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -45,28 +48,40 @@ namespace Scheduling_Backend.Controllers
                     .FirstOrDefaultAsync(u => u.Email == userLoginDto.Email);
                 if (user == null)
                 {
-                    return Unauthorized("Email not found!");
+                    return Unauthorized(new { message = "Invalid email or password!" });
                 }
 
                 var result = await _signInManager.CheckPasswordSignInAsync(user, userLoginDto.Password, false);
                 if (!result.Succeeded)
                 {
-                    return Unauthorized("Invalid email or password!");
+                    return Unauthorized(new { message = "Invalid email or password!" });
                 }
+
+                var token = await _tokenService.CreateToken(user);
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false, // SET TO TRUE IN PRODUCTION
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.Now.AddDays(7)
+                };
+                Response.Cookies.Append("token", token, cookieOptions);
+
                 if (await _userManager.IsInRoleAsync(user, "User"))
                 {
                     if (user.UserProfile == null)
                     {
-                        return StatusCode(500, "UserProfile is not set for this user.");
+                        return StatusCode(500, new { message = "UserProfile is not set for this user." });
                     }
                     return Ok(
                         new NewUserDto
                         {
+                            UserId = user.Id,
                             Email = user.Email!,
                             FirstName = user.UserProfile.FirstName,
                             LastName = user.UserProfile.LastName,
                             PhoneNumber = user.PhoneNumber,
-                            Token = _tokenService.CreateToken(user)
+                            Role = "User"
                         }
                     );
                 }
@@ -74,25 +89,26 @@ namespace Scheduling_Backend.Controllers
                 {
                     if (user.BusinessProfile == null)
                     {
-                        return StatusCode(500, "BusinessProfile is not set for this user.");
+                        return StatusCode(500, new { message = "BusinessProfile is not set for this user." });
                     }
                     return Ok(
                         new NewBusinessDto
                         {
+                            UserId = user.Id,
                             BusinessEmail = user.Email!,
                             BusinessName = user.BusinessProfile.BusinessName,
                             BusinessPhone = user.PhoneNumber!,
                             BusinessAddress = user.BusinessProfile.BusinessAddress,
                             BusinessDescription = user.BusinessProfile.BusinessDescription,
-                            BusinessToken = _tokenService.CreateToken(user)
+                            Role = "Business"
                         }
                     );
                 }
-                return Unauthorized("User is not registered as either User or Business!");
+                return Unauthorized(new { message = "User is not registered as either User or Business!" });
             }
             catch (Exception e)
             {
-                return StatusCode(500, $"Internal server error: {e.Message}");
+                return StatusCode(500, new { message = $"Internal server error: {e.Message}" });
             }
         }
 
@@ -104,6 +120,11 @@ namespace Scheduling_Backend.Controllers
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
+                }
+
+                if (userRegisterDto.Password != userRegisterDto.ConfirmPassword)
+                {
+                    return BadRequest(new { message = "Passwords do not match!" });
                 }
 
                 var user = new User
@@ -132,11 +153,12 @@ namespace Scheduling_Backend.Controllers
                         return Ok(
                             new NewUserDto
                             {
+                                UserId = user.Id,
                                 Email = user.Email!,
                                 FirstName = user.UserProfile.FirstName,
                                 LastName = user.UserProfile.LastName,
                                 PhoneNumber = user.PhoneNumber!,
-                                Token = _tokenService.CreateToken(user)
+                                Role = "User"
                             }
                         );
                     }
@@ -161,10 +183,14 @@ namespace Scheduling_Backend.Controllers
         {
             try
             {
-
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
+                }
+
+                if (businessRegisterDto.Password != businessRegisterDto.ConfirmPassword)
+                {
+                    return BadRequest(new { message = "Passwords do not match!" });
                 }
 
                 var business = new User
@@ -193,29 +219,104 @@ namespace Scheduling_Backend.Controllers
                         return Ok(
                             new NewBusinessDto
                             {
+                                UserId = business.Id,
                                 BusinessEmail = business.Email,
                                 BusinessName = business.BusinessProfile.BusinessName,
                                 BusinessPhone = business.PhoneNumber,
                                 BusinessAddress = business.BusinessProfile.BusinessAddress,
                                 BusinessDescription = business.BusinessProfile.BusinessDescription,
-                                BusinessToken = _tokenService.CreateToken(business)
+                                Role = "Business"
                             }
                         );
                     }
                     else
                     {
-                        return StatusCode(500, roleResult.Errors.Select(e => e.Description));
+                        return StatusCode(500, new { message = roleResult.Errors.Select(e => e.Description) });
                     }
                 }
                 else
                 {
-                    return StatusCode(500, createdBusiness.Errors.Select(e => e.Description));
+                    return StatusCode(500, new { message = createdBusiness.Errors.Select(e => e.Description) });
                 }
             }
             catch (Exception e)
             {
                 return StatusCode(500, $"Internal server error: {e.Message}");
             }
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            Response.Cookies.Delete("token");
+            try
+            {
+                await _signInManager.SignOutAsync();
+                return Ok(new { message = "Logged out successfully." });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { message = $"Internal server error: {e.Message}" });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("check-session")]
+        public async Task<IActionResult> CheckSession()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "Invalid token or session expired." });
+            }
+
+            if (role == "User")
+            {
+                var user = await _userManager.Users
+                    .Include(u => u.UserProfile)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+                if (user == null)
+                {
+                    return NotFound(new { message = "User not found." });
+                }
+                return Ok(
+                    new NewUserDto
+                    {
+                        UserId = userId,
+                        Email = email!,
+                        FirstName = user.UserProfile.FirstName,
+                        LastName = user.UserProfile.LastName,
+                        PhoneNumber = user.PhoneNumber,
+                        Role = role
+                    }
+                );
+            }
+            if (role == "Business")
+            {
+                var user = await _userManager.Users
+                    .Include(u => u.BusinessProfile)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+                if (user == null)
+                {
+                    return NotFound(new { message = "Business not found." });
+                }
+                return Ok(
+                    new NewBusinessDto
+                    {
+                        UserId = userId,
+                        BusinessEmail = email!,
+                        BusinessName = user.BusinessProfile.BusinessName,
+                        BusinessPhone = user.PhoneNumber!,
+                        BusinessAddress = user.BusinessProfile.BusinessAddress,
+                        BusinessDescription = user.BusinessProfile.BusinessDescription,
+                        Role = role
+                    }
+                );
+            }
+            return Unauthorized(new { message = "User is not registered as either User or Business!" });
         }
     }
 }

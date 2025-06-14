@@ -6,8 +6,15 @@
     border-radius: 0.5rem;
 
     font-weight: bold;
+    font-family: "Montserrat", sans-serif;
 }
 
 .button:hover {
     cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    scale: 1.04;
+
+    color: rgba(219, 26, 116, 0.8);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }

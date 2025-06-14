@@ -1,18 +1,18 @@
 .main-container {
-    display: flex;
-    flex-direction: column;
+    gap: 2rem;
     align-items: center;
-    min-height: 100vh;
 }
 
 .header {
     width: 100%;
+    height: 5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px 20px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    border-radius: 20px;
+    border-bottom-left-radius: 50px;
+    border-bottom-right-radius: 50px;
 }
 
 .left-header {
@@ -34,4 +34,26 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    text-align: center;
+    padding: 1rem;
+
+    max-width: 600px;
+    height: auto;
+
+    margin-top: 10%;
+
+    border-radius: 20px;
+}
+
+.features-container{
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.button-container{
+    display: flex;
+    flex-direction: row;
+    gap: 1.2rem;
+    margin-top: 3rem;
 }

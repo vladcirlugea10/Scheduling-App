@@ -1,3 +1,9 @@
+:root {
+  --primary-color: rgba(219, 26, 116, 0.8);
+  --danger-color: #EC1D1D;
+  --success-color: #28A745;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,9 +11,188 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  overflow-x: hidden;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+.transparent {
+  background-color: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-family: "Montserrat", sans-serif;
+}
+
+p {
+  font-size: 1.1rem;
+  font-family: "Montserrat", sans-serif;
+  line-height: 1.6;
+}
+
+.error-text {
+  color: var(--danger-color);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+input, textarea {
+  font-size: 1rem;
+  width: 200px;
+  padding: 0.5rem;
+
+  border-radius: 20px;
+  border: none;
+}
+
+textarea {
+  width: 400px;
+  height: 100px;
+  resize: none;
+}
+
+input:focus,textarea:focus {
+  outline: none;
+  box-shadow: 2px 2px 2px rgba(63, 94, 251, 0.5);
+  border: var(--primary-color) 2px solid;
+  transform: scale(1.03);
+}
+
+input,textarea:hover {
+  cursor: pointer;
+  box-shadow: 4px 4px 4px rgba(63, 94, 251, 0.3);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.main-container{
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  flex-direction: column;
+  padding-bottom: 5%;
+
+  background: #3F5EFB;
+  background: radial-gradient(circle, rgba(63, 94, 251, 1) 0%, rgba(252, 70, 107, 1) 100%);
+}
+
+.auth-container {
+    width: 30%;
+    height: auto;
+    padding: 1.5rem;
+    margin-top: 5%;
+    border-radius: 20px;
+}
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.loading-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.fade-in {
+    animation-name: fadeIn;
+    animation-iteration-count: 1;
+    animation-timing-function: ease-in;
+    animation-duration: 1.5s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.shake {
+    animation-name: shake;
+    animation-duration: 0.75s;
+    animation-iteration-count: 2;
+    animation-timing-function: ease-in-out;
+    animation-delay: 0.5s;
+}
+
+@keyframes shake {
+    0% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-10px);
+    }
+    50% {
+      transform: translateX(10px);
+    }
+    75% {
+      transform: translateX(-10px);
+    }
+    100% {
+      transform: translateX(0);
+    }
+}
+
+.slide-from-down {
+    animation-name: slideFromDown;
+    animation-iteration-count: 1;
+    animation-timing-function: ease-in;
+    animation-duration: 1s;
+}
+
+@keyframes slideFromDown {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.wave {
+    animation-name: wave;
+    animation-duration: 2s;
+    animation-iteration-count: 2;
+}
+
+@keyframes wave {
+    0% {
+        transform: rotate(0deg);
+    }
+    15% {
+        transform: rotate(20deg);
+    }
+    30% {
+        transform: rotate(-10deg); 
+    }
+    40% {
+        transform: rotate(20deg);
+    }
+    50% {
+        transform: rotate(-8deg);
+    }
+    60% {
+        transform: rotate(16deg);
+    }
+    70% {
+        transform: rotate(-8deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
 }
